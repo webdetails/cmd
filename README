@@ -1,0 +1,4 @@
+Community Mobile Dashboards
+===========================
+
+Community Mobile Dashboards, or CMD, is a Pentaho plugin designed to give end-users a mobile-aware dashboarding experience. CMD itself operates as a client that pulls dashboards from [CDE](thub.com/pmalves/cde). This documentation will be fleshed out as we 
