@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 
@@ -21,6 +22,7 @@ import org.pentaho.platform.api.repository.IContentItem;
 import org.pentaho.reporting.libraries.base.util.StringUtils;
 import org.pentaho.platform.engine.core.system.PentahoSystem;
 import pt.webdetails.cdf.mobile.favorites.FavoritesEngine;
+import pt.webdetails.cdf.mobile.navigator.WcdfFileNavigator;
 
 @SuppressWarnings("unchecked")
 public class ContentGenerator extends BaseContentGenerator
@@ -42,7 +44,7 @@ public class ContentGenerator extends BaseContentGenerator
   private enum Methods
   {
 
-    FAVORITES
+    FAVORITES, LISTDASHBOARDS
   }
 
 
@@ -90,6 +92,9 @@ public class ContentGenerator extends BaseContentGenerator
           {
             case FAVORITES:
               processStorage(requestParams, out);
+              break;
+            case LISTDASHBOARDS:
+              listDashboards(requestParams, out);
               break;
           }
         }
@@ -245,5 +250,25 @@ public class ContentGenerator extends BaseContentGenerator
     pw.println(result);
     pw.flush();
 
+  }
+
+
+  private void listDashboards(IParameterProvider requestParams, OutputStream out)
+  {
+
+    final HttpServletResponse response = (HttpServletResponse) parameterProviders.get("path").getParameter("httpresponse");
+    response.setHeader("Content-Type", "application/json");
+
+    final String contextPath = ((HttpServletRequest) parameterProviders.get("path").getParameter("httprequest")).getContextPath();
+    final WcdfFileNavigator nav = new WcdfFileNavigator(userSession, contextPath);
+    try
+    {
+      final String json = nav.getWcdfFilelist("navigator", "Eco", "");
+      out.write(json.getBytes("UTF8"));
+    }
+    catch (Exception e)
+    {
+      logger.error(e);
+    }
   }
 }
