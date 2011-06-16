@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "CCC Example",
-    "filters": "#filters"
+    "filters": "#0b5216ec-2d2f-0535-0c3a-a6ba092f9254"
   },
   "headers": "<!--[if lt IE 9]><script\n        type='text/javascript' src='getJsResource/resources/custom/components/CCC/svg.js'\n        data-path='getUntypedResource/resources/custom/components/CCC/'>\n    </script><![endif]--> \n    <meta name='svg.render.forceflash' content='true'> \n    <script type='text/javascript' src='/pentaho/content/pentaho-cdf/js/scripts.js?version=3abad05b2b89b27301ff78efafec1caa'></script>\n    <link href='/pentaho/content/pentaho-cdf/js/styles.css?version=afe784ea72a0855a90ba39e1b6485150' rel='stylesheet' type='text/css' />\n    <link rel='stylesheet' type='text/css' href='/pentaho/content/pentaho-cdf/js/theme/cupertino/jquery-ui-1.8.custom.css'/>\n    <!--[if lte IE 8]>\n        <link rel='stylesheet' href='/pentaho/content/pentaho-cdf/js/blueprint/ie.css' type='text/css' media='screen, projection'>\n    <![endif]-->\n    <script language='javascript' type='text/javascript' src='/pentaho/content/pentaho-cdf-dd/getJsResource/js/CDF.js?v=886d9278733531d17499510516d74744'></script>\n    <link href='/pentaho/content/pentaho-cdf-dd/getCssResource/css/CDF-CSS.css?v=4eca4dff5f4a6b822582cff5d04f0c74' rel='stylesheet' type='text/css' />",
 

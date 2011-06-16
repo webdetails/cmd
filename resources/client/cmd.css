@@ -93,10 +93,15 @@ div.cmdContent > div {
 #mainContent, #filtersContent {
     padding: 0;
     width: 100%;
+    background: #1b1b1b;
 }
 
 #placeholder {
   display: none;
+}
+
+#dashboardView, #filtersPanel {
+  background: #1b1b1b;
 }
 
 #cmdFilters {
@@ -106,18 +111,7 @@ div.cmdContent > div {
   background-color: #555;
   z-index: 100;
 }
-/*
-#filters {
-  position: absolute;
-  top: 0px;
-  left: 0px;
-  margin: 0px;
-  padding: 0px;
-  width: 100%;
-  height: 100%; 
-  background-color: #f0f;
-}
-*/
+
 ul.cdfCarousel {
   padding: 10px 0px;
   list-style:none;
@@ -128,12 +122,14 @@ ul.cdfCarousel {
 ul.cdfCarousel.showTitle .cdfCarouselItemTitle {
   text-align: center;
   width: 100%;
-  background-color: #000;
   padding: 2px 5px;
   height: 18px;
   font-size: 15px;
+/*
   background-image: -webkit-gradient(linear,left top,left bottom, color-stop(0, #3c3c3c), color-stop(1, #111111));
-  margin-bottom: 3px;
+  background-color: #000;
+*/
+margin-bottom: 3px;
 }
 
 
@@ -166,24 +162,36 @@ div.status div.statusBullet:not(:first-child) {
 
 div.outerStatus div.nav {
   display: inline-block;
-  width: 16px;
-  height: 16px;
-  background-color:#aa0;
+  width: 57px;
+  height: 36px;
 }
-div.outerStatus div.prev {
 
+div.outerStatus div.prev {
+  float: left;
+  margin-left: 15px;
+  background-image: url('img/buttons/left_enabled.png');
 }
 
 div.outerStatus div.next {
+  float: right;
+  margin-right: 15px;
+  background-image: url('img/buttons/right_enabled.png');
+}
 
+div.outerStatus div.prev.disabled {
+  background-image: url('img/buttons/left_disabled.png');
+}
+
+div.outerStatus div.next.disabled {
+  background-image: url('img/buttons/right_disabled.png');
 }
 
 div.status div.statusBullet {
-  background-color: silver;
+  background-color: #727272;
   display: inline-block;
-  border-radius: 6px;
-  width: 12px;
-  height: 12px;
+  border-radius: 5px;
+  width: 10px;
+  height: 10px;
   box-shadow: inset -1px 0px 2px black;
   -webkit-box-shadow: inset -1px 0px 2px black;
 }

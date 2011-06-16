@@ -3,14 +3,14 @@ function CDFMobile(jq){
   var jQuery = jq.noConflict(true),
     $ = jQuery;
   var myself = this;
+  // expose our local jquery with jquerymobile to the outside world
   window["$m"] = $;
-  //var _scrollController = new iScroll('cmdContent');
-  //var _filterScrollerController = new iScroll('filtersScroller');
 
   var _dashboard = {};
   var _carousels = [];
 
   var _title = $("#title"),
+    _navSelector = $('#navSelector'),
     _scriptHolder = $("#scriptHolder"),
     _staging = $("#placeholder"),
     _content = $('#cmdContent'),
@@ -25,6 +25,7 @@ function CDFMobile(jq){
 
   function commonHeaders() {
     var headers = "<script type='text/javascript' src='lib/componentOverrides.js'></script>";
+    headers+= "<script>console.log('Binding to CDF');$(window).bind('cdfLoaded',function(){cdfmobile.cdfLoaded();});</script>";
     return headers;
   }
   function handleRequest(data){
@@ -40,6 +41,7 @@ function CDFMobile(jq){
     _staging.html(_dashboard.content);
     _innerFilters.empty().append($(_dashboard.meta.filters));
     _dashboard.empty().append(_staging.children());
+    myself.resizeAll();
     reloadCarousels();
   };
 
@@ -55,7 +57,12 @@ function CDFMobile(jq){
       callback.call(myself);
     };
   }
-  
+  function loadDashboardList(){
+    $.get("dashboardList.json",processDashboardList);
+  }
+  function processDashboardList(d){
+    
+  }
   this.loadDashboard = function(solution,path,file) {
     if (arguments.length > 0) {
       _dashboard.location = {};
@@ -63,7 +70,14 @@ function CDFMobile(jq){
       _dashboard.location.path = path;
       _dashboard.location.file = file;
     }
-    $.get("/pentaho/content/pentaho-cdf-dd/Render", {solution: _dashboard.location.solution, path: _dashboard.location.path, file: _dashboard.location.file, absolute: true}, handleRequest,"json");
+    $.get("/pentaho/content/pentaho-cdf-dd/Render",
+      {
+        solution: _dashboard.location.solution,
+        path: _dashboard.location.path,
+        file: _dashboard.location.file,
+        absolute: true
+      },
+      handleRequest,"json");
   };
 
   this.redrawToolbar = function(buttons) {
@@ -72,7 +86,107 @@ function CDFMobile(jq){
 
   this.redrawFiltersToolbar = function(buttons) {
     redrawNavBar(buttons,_filterToolbar);
+  };
+  this.resizeAll = function() {
+    resizeCharts();
+    for(var i = 0; i < _carousels.length;i++) {
+      var car = _carousels[i];
+      resizeCarousel(car.scroller);
+      car.refresh();
+    }
   }
+
+  function resizeCharts(){
+    
+    var headerFooterPadding = $m.mobile.activePage.find('[data-role=header]').height() +
+      $m.mobile.activePage.find('[data-role=footer]').height();
+    var widthMult, heightMult;
+
+    var charts = Dashboards.components.filter(function(comp){return /^ccc/.test(comp.type);});
+    $.each(charts,function(i,comp){
+      /* First thing first: don't even try to resize charts that haven't
+       * been initialized!
+       */
+      if (!comp.chart) {
+        return;
+      }
+
+      var $e = $("#" + comp.htmlObject + " svg"),
+        e = $e[0],
+      /* Next step is measuring the available space for our charts. We always
+       * have the full window width available to us, but that's not the case
+       * with the height, so we trim out the space we know must be reserved.
+       */
+        windowWidth = window.innerWidth,
+        windowHeight = window.innerHeight,
+        availableWidth = windowWidth - 20,
+        availableHeight = windowHeight - headerFooterPadding - 150,
+      /* In the name of sanity, we'd rather calculate everything relative
+       * to the original sizes, rather than the last calculated size, so
+       * we'll store/retrieve the original values in a data attribute.
+       */
+        originalHeight = $e.attr('data-originalHeight') || $e.height(),
+        originalWidth = $e.attr('data-originalWidth') || $e.width();
+      $e.attr('data-originalHeight',originalHeight);
+      $e.attr('data-originalWidth',originalWidth);
+
+       /* Next we calculate the ratios between original and available space.
+        * To keep the original proportions, we have to multiply both axes
+        * by the same ratio, so we need to pick the smallest of the two so
+        * we stay within the available space
+        */
+      var heightRatio = availableHeight / originalHeight,
+        widthRatio = availableWidth / originalWidth,
+        availableRatio = heightRatio < widthRatio ? heightRatio : widthRatio,
+        targetWidth = originalWidth * availableRatio,
+        targetHeight = originalHeight * availableRatio;
+        
+      /* Finally, set the width and height to our desired values for the chart
+       * object, the component and the svg. We also need to give the svg a
+       * viewBox, or the svg will think we just enlarged its canvas.
+       */
+
+      comp.chart.options.width = targetWidth;
+      comp.chart.options.height = targetHeight;
+
+      comp.chartDefinition.width = targetWidth;
+      comp.chartDefinition.height = targetHeight;
+
+      e.setAttribute('width', targetWidth);
+      e.setAttribute('height', targetHeight);
+      e.setAttribute('viewBox', '0 0 ' + originalWidth + ' ' + originalHeight);
+    });
+  };
+
+  /* The navigation pull-down menu gets its data from the loaded
+   * dashboard. We expect to find a mobileNav component with a
+   * navList() method that provides a listing of the dashboards
+   * you can navigate to from your present location. if such a
+   * component isn't found, we assume that this is a dead-end
+   * dashboard and hide the navigation pull-down instead.
+   */
+  function updateNavigation() {
+    /* First we check for the existence of the mobileNav component.
+     * We check for either the bare mobileNav name, or the the
+     * CDE-style render_mobileNav name.
+     * If it doesn't exist, we just hide the navigation pull-down.
+     */
+    var navComponent = window.mobileNav || window.render_mobileNav;
+    if (!navComponent) {
+      _navSelector.hide();
+      return;
+    }
+    /* 
+     */
+    var dashboardList = navComponent.navList();
+    
+  };
+
+   /*  
+    */
+  function navigationCallback(event) {
+
+  };
 
   function redrawNavBar(buttons,loc) {
     if (buttons.length) {
@@ -120,14 +234,12 @@ function CDFMobile(jq){
     });
   };
 
-  function createCarousel(element) {
-    var $element =  $(element),
-      $container =$("<div class='cdfCarouselContainer'></div>").insertBefore($element),
+  function resizeCarousel(element) {
+    var $element = (element instanceof $ ? element : $(element)),
       contentWidth = _content.innerWidth();
-      contentHeight = 0;
       totalWidth = 0,
       count = 0;
-    
+
     $(element).find("li.cdfCarouselItem").each(function(i,e){
       count += 1;
       var $e = $(e);
@@ -135,9 +247,19 @@ function CDFMobile(jq){
       totalWidth+=$e.outerWidth(true);
       //contentHeight =  $e.height() > contentHeight ? $e.height() : contentHeight;
     });
-    $element.appendTo($container);
     $element.width(totalWidth);
     $element.find("ul.cdfCarousel").width(totalWidth);
+
+    return count;
+  };
+
+  function createCarousel(element) {
+    var $element =  $(element),
+      $container =$("<div class='cdfCarouselContainer'></div>").insertBefore($element),
+      count = 0;
+    
+    count = resizeCarousel($element);
+    $element.appendTo($container);
     var scroller = new iScroll($container[0], {
       snap: true,
       momentum: false,
@@ -198,22 +320,27 @@ function CDFMobile(jq){
   this.refreshSelector = function(component) {
     $("#" + component.htmlObject + " select").attr('data-theme',_jqmTheme).selectmenu();
   }
+
+  this.cdfLoaded = function() {
+    console.log('cdf-m caught cdf loading');
+    this.resizeAll();
+  }
 }
 $(function(){
   var parameters = {};
   $.each(location.search.slice(1).split('&').map(function(e){return e.split('=')}),function(i,e){parameters[e[0]] = e[1]}); 
   window.cdfmobile = new CDFMobile(jQuery);
   cdfmobile.redrawToolbar([
-    {
-      label: "Favorites",
-      icon: "star",
-      callback: cdfmobile.favorites
-    },
-    {
-      label: "Settings",
-      icon: "gear",
-      callback: cdfmobile.settings
-    },
+//    {
+//      label: "Favorites",
+//      icon: "star",
+//      callback: cdfmobile.favorites
+//    },
+//    {
+//      label: "Settings",
+//      icon: "gear",
+//      callback: cdfmobile.settings
+//    },
     {
       label: "Filters",
       icon: "search",
@@ -228,16 +355,19 @@ $(function(){
     }
   ]);
   cdfmobile.redrawFiltersToolbar([
+//    {
+//      label: "Cancel",
+//      icon: "delete",
+//      callback: cdfmobile.filtersCancel,
+//    },
     {
-      label: "Cancel",
-      icon: "delete",
-      callback: cdfmobile.filtersCancel,
-    },
-    {
-      label: "Ok",
+//      label: "Ok",
+      label: "Done", 
       icon: "check",
       callback: cdfmobile.filtersOk,
     }
   ]);
+  $m(window).bind ('cdfLoaded',function(){console.log('cdf finished loading');cdfmobile.ResizeAll();});
   setTimeout(function(){cdfmobile.loadDashboard(parameters.solution,parameters.path,parameters.file);},20);
+  $m(window).bind('resize', cdfmobile.resizeAll);
 });
