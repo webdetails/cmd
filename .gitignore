@@ -3,5 +3,5 @@ nbproject/private/
 bin/
 dist/
 build/
-lib/
+/lib/
 override.properties
