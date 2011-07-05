@@ -41,8 +41,8 @@ function CDFMobile(jq){
     _staging.html(_dashboard.content);
     _innerFilters.empty().append($(_dashboard.meta.filters));
     _dashboard.empty().append(_staging.children());
-    myself.resizeAll();
     reloadCarousels();
+    myself.resizeAll();
   };
 
   function captureClick(callback) {
@@ -291,6 +291,25 @@ function CDFMobile(jq){
     });
   };
 
+  function refreshNav() {
+    var $nav = $('select#navSelector');
+    if(render_navigation) {
+      $nav.empty();
+      $nav.unbind('change');
+      $nav.bind('change', function(e){
+        var args = $('select#navSelector').val().split('&').map(function(e){return e.split('=')[1];});
+        myself.loadDashboard.apply(myself,args);
+      });
+      $nav.append("<option data-placeholder='true'>Navigate</option>");
+      $.each(render_navigation.navTargets, function(i,e){
+        $nav.append("<option value='"+e[1]+"'>"+e[0]+"</option>");
+      });
+      $nav.show();
+      $nav.selectmenu('refresh');
+    } else {
+      $nav.hide();
+    };
+  };
   this.refresh = function() {
     console.log("Refreshing");
     this.loadDashboard();
@@ -323,6 +342,7 @@ function CDFMobile(jq){
 
   this.cdfLoaded = function() {
     console.log('cdf-m caught cdf loading');
+    refreshNav();
     this.resizeAll();
   }
 }
@@ -367,7 +387,10 @@ $(function(){
       callback: cdfmobile.filtersOk,
     }
   ]);
-  $m(window).bind ('cdfLoaded',function(){console.log('cdf finished loading');cdfmobile.ResizeAll();});
+  $m(window).bind ('cdfLoaded',function(){
+    console.log('cdf finished loading');
+    cdfmobile.ResizeAll();
+  });
   setTimeout(function(){cdfmobile.loadDashboard(parameters.solution,parameters.path,parameters.file);},20);
   $m(window).bind('resize', cdfmobile.resizeAll);
 });

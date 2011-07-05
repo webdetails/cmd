@@ -2462,7 +2462,7 @@ $.widget( "mobile.page", $.mobile.widget, {
 	
 	//simply set the active page's minimum height to screen height, depending on orientation
 	function getScreenHeight(){
-		var orientation 	= jQuery.event.special.orientationchange.orientation(),
+		var orientation 	= $.event.special.orientationchange.orientation(),
 			port			= orientation === "portrait",
 			winMin			= port ? 480 : 320,
 			screenHeight	= port ? screen.availHeight : screen.availWidth,
